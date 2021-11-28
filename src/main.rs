@@ -72,8 +72,7 @@ fn parse_tables_rf_parameters_upstream_table(
     let tr_selector = scraper::Selector::parse("tr").unwrap();
     let td_selector = scraper::Selector::parse("td").unwrap();
 
-    let mut tables_rf_parameters_upstream_iter = tables_rf_parameters_upstream
-        .select(&tr_selector);
+    let mut tables_rf_parameters_upstream_iter = tables_rf_parameters_upstream.select(&tr_selector);
 
     // Skip first row.
     tables_rf_parameters_upstream_iter.next();
@@ -83,62 +82,62 @@ fn parse_tables_rf_parameters_upstream_table(
         .unwrap()
         .select(&td_selector);
 
-    let mut upstream_parameter = UpstreamParameter::default();
+    let upstream_parameter = UpstreamParameter {
+        id: rf_parameters_tabledata
+            .next()
+            .unwrap()
+            .text()
+            .collect::<Vec<&str>>()
+            .concat()
+            .split(' ')
+            .last()
+            .unwrap()
+            .to_string(),
 
-    upstream_parameter.id = rf_parameters_tabledata
-        .next()
-        .unwrap()
-        .text()
-        .collect::<Vec<&str>>()
-        .concat()
-        .split(' ')
-        .last()
-        .unwrap()
-        .to_string();
+        channel_id: rf_parameters_tabledata
+            .next()
+            .unwrap()
+            .text()
+            .collect::<Vec<&str>>()
+            .concat()
+            .parse::<u8>()
+            .unwrap_or(0),
 
-    upstream_parameter.channel_id = rf_parameters_tabledata
-        .next()
-        .unwrap()
-        .text()
-        .collect::<Vec<&str>>()
-        .concat()
-        .parse::<u8>()
-        .unwrap_or(0);
+        frequency: rf_parameters_tabledata
+            .next()
+            .unwrap()
+            .text()
+            .collect::<Vec<&str>>()
+            .concat(),
 
-    upstream_parameter.frequency = rf_parameters_tabledata
-        .next()
-        .unwrap()
-        .text()
-        .collect::<Vec<&str>>()
-        .concat();
+        power: rf_parameters_tabledata
+            .next()
+            .unwrap()
+            .text()
+            .collect::<Vec<&str>>()
+            .concat(),
 
-    upstream_parameter.power = rf_parameters_tabledata
-        .next()
-        .unwrap()
-        .text()
-        .collect::<Vec<&str>>()
-        .concat();
+        channel_type: rf_parameters_tabledata
+            .next()
+            .unwrap()
+            .text()
+            .collect::<Vec<&str>>()
+            .concat(),
 
-    upstream_parameter.channel_type = rf_parameters_tabledata
-        .next()
-        .unwrap()
-        .text()
-        .collect::<Vec<&str>>()
-        .concat();
+        symbol_rate: rf_parameters_tabledata
+            .next()
+            .unwrap()
+            .text()
+            .collect::<Vec<&str>>()
+            .concat(),
 
-    upstream_parameter.symbol_rate = rf_parameters_tabledata
-        .next()
-        .unwrap()
-        .text()
-        .collect::<Vec<&str>>()
-        .concat();
-
-    upstream_parameter.modulation = rf_parameters_tabledata
-        .next()
-        .unwrap()
-        .text()
-        .collect::<Vec<&str>>()
-        .concat();
+        modulation: rf_parameters_tabledata
+            .next()
+            .unwrap()
+            .text()
+            .collect::<Vec<&str>>()
+            .concat(),
+    };
 
     return vec![upstream_parameter];
 }
@@ -149,8 +148,8 @@ fn parse_tables_rf_parameters_downstream_table(
     let tr_selector = scraper::Selector::parse("tr").unwrap();
     let td_selector = scraper::Selector::parse("td").unwrap();
 
-    let mut tables_rf_parameters_downstream_iter = tables_rf_parameters_downstream
-        .select(&tr_selector);
+    let mut tables_rf_parameters_downstream_iter =
+        tables_rf_parameters_downstream.select(&tr_selector);
 
     // Skip first row.
     tables_rf_parameters_downstream_iter.next();
@@ -158,90 +157,91 @@ fn parse_tables_rf_parameters_downstream_table(
     let mut results: Vec<DownstreamParameter> = Vec::new();
 
     for datarow in tables_rf_parameters_downstream_iter {
-        let mut downstream_parameter = DownstreamParameter::default();
-
         let mut rf_parameters_tds = datarow.select(&td_selector);
 
-        downstream_parameter.id = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat()
-            .split(' ')
-            .last()
-            .unwrap()
-            .to_string()
-            .parse()
-            .unwrap();
+        let downstream_parameter = DownstreamParameter {
+            id: rf_parameters_tds
+                .next()
+                .unwrap()
+                .text()
+                .collect::<Vec<&str>>()
+                .concat()
+                .split(' ')
+                .last()
+                .unwrap()
+                .to_string()
+                .parse()
+                .unwrap(),
 
-        downstream_parameter.channel_id = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat()
-            .parse::<u8>()
-            .unwrap_or(0);
+            channel_id: rf_parameters_tds
+                .next()
+                .unwrap()
+                .text()
+                .collect::<Vec<&str>>()
+                .concat()
+                .parse::<u8>()
+                .unwrap_or(0),
 
-        downstream_parameter.freq = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat();
+            freq: rf_parameters_tds
+                .next()
+                .unwrap()
+                .text()
+                .collect::<Vec<&str>>()
+                .concat(),
 
-        downstream_parameter.power = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat();
+            power: rf_parameters_tds
+                .next()
+                .unwrap()
+                .text()
+                .collect::<Vec<&str>>()
+                .concat(),
 
-        downstream_parameter.snr = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat();
+            snr: rf_parameters_tds
+                .next()
+                .unwrap()
+                .text()
+                .collect::<Vec<&str>>()
+                .concat(),
 
-        downstream_parameter.modulation = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat();
+            modulation: rf_parameters_tds
+                .next()
+                .unwrap()
+                .text()
+                .collect::<Vec<&str>>()
+                .concat(),
 
-        downstream_parameter.octets = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat()
-            .parse::<usize>()
-            .unwrap_or(0);
+            octets: rf_parameters_tds
+                .next()
+                .unwrap()
+                .text()
+                .collect::<Vec<&str>>()
+                .concat()
+                .parse::<usize>()
+                .unwrap_or(0),
 
-        downstream_parameter.correcteds = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat()
-            .parse::<u8>()
-            .unwrap_or(0);
+            correcteds: rf_parameters_tds
+                .next()
+                .unwrap()
+                .text()
+                .collect::<Vec<&str>>()
+                .concat()
+                .parse::<u8>()
+                .unwrap_or(0),
 
-        downstream_parameter.uncorrectables = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat()
-            .parse::<u8>()
-            .unwrap_or(0);
+            uncorrectables: rf_parameters_tds
+                .next()
+                .unwrap()
+                .text()
+                .collect::<Vec<&str>>()
+                .concat()
+                .parse::<u8>()
+                .unwrap_or(0),
+        };
 
         results.push(downstream_parameter);
     }
-    return results;
+    
+    results
 }
 
 fn parse_tables_interface_parameters_table(
@@ -302,7 +302,7 @@ fn parse_tables_interface_parameters_table(
     }
 
     // println!("{}", serde_json::to_string_pretty(&results).unwrap());
-    return results;
+    results
 }
 
 fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusParameter {
@@ -311,52 +311,52 @@ fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusParame
 
     let mut tables_status_iter = tables_status.select(&tr_selector);
 
-    let mut results = StatusParameter::default();
+    StatusParameter {
+        uptime: tables_status_iter
+            .next()
+            .unwrap()
+            .select(&td_selector)
+            .last()
+            .unwrap()
+            .text()
+            .collect::<Vec<_>>()
+            .concat(),
 
-    results.uptime = tables_status_iter
-        .next()
-        .unwrap()
-        .select(&td_selector)
-        .last()
-        .unwrap()
-        .text()
-        .collect::<Vec<_>>()
-        .concat();
-    results.computers_detected = tables_status_iter
-        .next()
-        .unwrap()
-        .select(&td_selector)
-        .last()
-        .unwrap()
-        .text()
-        .collect::<Vec<_>>()
-        .concat()
-        .trim()
-        .to_owned();
-    results.cm_status = tables_status_iter
-        .next()
-        .unwrap()
-        .select(&td_selector)
-        .last()
-        .unwrap()
-        .text()
-        .collect::<Vec<_>>()
-        .concat();
-    results.current_datetime = tables_status_iter
-        .next()
-        .unwrap()
-        .select(&td_selector)
-        .last()
-        .unwrap()
-        .text()
-        .collect::<Vec<_>>()
-        .concat();
+        computers_detected: tables_status_iter
+            .next()
+            .unwrap()
+            .select(&td_selector)
+            .last()
+            .unwrap()
+            .text()
+            .collect::<Vec<_>>()
+            .concat()
+            .trim()
+            .to_owned(),
 
-    return results;
+        cm_status: tables_status_iter
+            .next()
+            .unwrap()
+            .select(&td_selector)
+            .last()
+            .unwrap()
+            .text()
+            .collect::<Vec<_>>()
+            .concat(),
+
+        current_datetime: tables_status_iter
+            .next()
+            .unwrap()
+            .select(&td_selector)
+            .last()
+            .unwrap()
+            .text()
+            .collect::<Vec<_>>()
+            .concat(),
+    }
 }
 
-fn parse_request(html: &str) -> ArrisStatus {    
-
+fn parse_request(html: &str) -> ArrisStatus {
     let document = scraper::Html::parse_document(html);
 
     let table_selector = scraper::Selector::parse("table").unwrap();
