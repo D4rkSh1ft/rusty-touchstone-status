@@ -22,7 +22,7 @@ struct RFParameters {
 struct UpstreamParameter {
     id: String,
     channel_id: u8,
-    frequency: String,
+    freq_mhz: f32,
     power: String,
     channel_type: String,
     symbol_rate: String,
@@ -33,7 +33,7 @@ struct UpstreamParameter {
 struct DownstreamParameter {
     id: u8,
     channel_id: u8,
-    freq_mhz: String,
+    freq_mhz: f32,
     power: String,
     snr: String,
     modulation: String,
@@ -77,10 +77,7 @@ fn parse_tables_rf_parameters_upstream_table(
     // Skip first row.
     table_iter.next();
 
-    let mut td_tags = table_iter
-        .next()
-        .unwrap()
-        .select(&td_selector);
+    let mut td_tags = table_iter.next().unwrap().select(&td_selector);
 
     let upstream_parameter = UpstreamParameter {
         id: td_tags
@@ -103,12 +100,18 @@ fn parse_tables_rf_parameters_upstream_table(
             .parse::<u8>()
             .unwrap_or(0),
 
-        frequency: td_tags
+        freq_mhz: td_tags
             .next()
             .unwrap()
             .text()
             .collect::<Vec<&str>>()
-            .concat(),
+            .concat()
+            .split(' ')
+            .next()
+            .unwrap_or("")
+            .to_string()
+            .parse::<f32>()
+            .unwrap(),
 
         power: td_tags
             .next()
@@ -148,8 +151,7 @@ fn parse_tables_rf_parameters_downstream_table(
     let tr_selector = scraper::Selector::parse("tr").unwrap();
     let td_selector = scraper::Selector::parse("td").unwrap();
 
-    let mut table_iter =
-        tables_rf_parameters_downstream.select(&tr_selector);
+    let mut table_iter = tables_rf_parameters_downstream.select(&tr_selector);
 
     // Skip first row.
     table_iter.next();
@@ -186,7 +188,13 @@ fn parse_tables_rf_parameters_downstream_table(
                     .unwrap()
                     .text()
                     .collect::<Vec<&str>>()
-                    .concat(),
+                    .concat()
+                    .split(' ')
+                    .next()
+                    .unwrap_or("")
+                    .to_string()
+                    .parse::<f32>()
+                    .unwrap(),
 
                 power: td_tags
                     .next()
