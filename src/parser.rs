@@ -2,12 +2,14 @@ use scraper::ElementRef;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Serialize, Deserialize)]
+/// RF Parameters for Arris Cable Modem
 pub struct RFParameters {
     pub downstream_parameters: Vec<DownstreamParameter>,
     pub upstream_parameters: Vec<UpstreamParameter>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
+/// Upstream RF channel information
 pub struct UpstreamParameter {
     pub id: u8,
     pub channel_id: u8,
@@ -19,6 +21,7 @@ pub struct UpstreamParameter {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
+/// Downstream RF channel information
 pub struct DownstreamParameter {
     pub id: u8,
     pub channel_id: u8,
@@ -32,6 +35,7 @@ pub struct DownstreamParameter {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
+/// Cable modem status information
 pub struct StatusParameter {
     pub uptime: String,
     pub computers_detected: String,
@@ -40,6 +44,7 @@ pub struct StatusParameter {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
+/// Cable modem interface information
 pub struct InterfaceInformation {
     pub name: String,
     pub provisioned: String,
@@ -49,16 +54,19 @@ pub struct InterfaceInformation {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
+/// Arris cable modem status
 pub struct ArrisStatus {
     pub rf_parameters: RFParameters,
     pub status: StatusParameter,
     pub interfaces: Vec<InterfaceInformation>,
 }
 
+/// Take the first string from a HTML Element.
 pub fn take_first_string(input: Option<ElementRef>) -> String {
     input.unwrap().text().collect::<String>()
 }
 
+/// Take the first string after splitting on whitespace.
 pub fn take_first_string_from_split(input: Option<ElementRef>) -> String {
     take_first_string(input)
         .split_whitespace()
@@ -66,6 +74,8 @@ pub fn take_first_string_from_split(input: Option<ElementRef>) -> String {
         .unwrap()
         .to_string()
 }
+
+/// Take the last string after splitting on whitespace.
 pub fn take_last_string_from_split(input: Option<ElementRef>) -> String {
     take_first_string(input)
         .split_whitespace()
@@ -74,7 +84,7 @@ pub fn take_last_string_from_split(input: Option<ElementRef>) -> String {
         .to_string()
 }
 
-
+/// Parse the HTML tables from an Arris cablemodem status page.
 pub fn parse_tables_rf_parameters_upstream_table(
     tables_rf_parameters_upstream: scraper::ElementRef,
 ) -> Vec<UpstreamParameter> {
@@ -115,6 +125,7 @@ pub fn parse_tables_rf_parameters_upstream_table(
     return vec![upstream_parameter];
 }
 
+/// Parse the Downstream RF channel information from an HTML table
 pub fn parse_tables_rf_parameters_downstream_table(
     tables_rf_parameters_downstream: scraper::ElementRef,
 ) -> Vec<DownstreamParameter> {
@@ -169,6 +180,7 @@ pub fn parse_tables_rf_parameters_downstream_table(
         .collect::<Vec<DownstreamParameter>>()
 }
 
+/// Parse the interface information from an HTML table
 pub fn parse_tables_interface_parameters_table(
     tables_interface_parameters: scraper::ElementRef,
 ) -> Vec<InterfaceInformation> {
@@ -199,6 +211,7 @@ pub fn parse_tables_interface_parameters_table(
         .collect::<Vec<InterfaceInformation>>()
 }
 
+/// Parse the status information from an HTML table
 pub fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusParameter {
     let tr_selector = scraper::Selector::parse("tr").unwrap();
     let td_selector = scraper::Selector::parse("td").unwrap();
@@ -224,6 +237,7 @@ pub fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusPa
     }
 }
 
+/// Parse the information from an HTML table
 pub fn parse_request(html: &str) -> ArrisStatus {
     let document = scraper::Html::parse_document(html);
 
