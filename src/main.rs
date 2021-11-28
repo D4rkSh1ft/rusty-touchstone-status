@@ -355,8 +355,7 @@ fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusParame
     return results;
 }
 
-fn parse_request(html: &str) -> ArrisStatus {
-    println!("Parsing the text...");
+fn parse_request(html: &str) -> ArrisStatus {    
 
     let document = scraper::Html::parse_document(html);
 
