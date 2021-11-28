@@ -1,3 +1,4 @@
+use scraper::ElementRef;
 use serde::{Deserialize, Serialize};
 
 fn send_request() -> String {
@@ -20,13 +21,13 @@ struct RFParameters {
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 struct UpstreamParameter {
-    id: String,
+    id: u8,
     channel_id: u8,
     freq_mhz: f32,
-    power: String,
+    power_dbmv: f32,
+    modulation: String,
     channel_type: String,
     symbol_rate: String,
-    modulation: String,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -34,12 +35,12 @@ struct DownstreamParameter {
     id: u8,
     channel_id: u8,
     freq_mhz: f32,
-    power: String,
-    snr: String,
+    power_dbmv: f32,
     modulation: String,
+    snr_db: f32,
     octets: usize,
-    correcteds: u8,
-    uncorrectables: u8,
+    corrected_count: u8,
+    uncorrectable_count: u8,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -66,6 +67,26 @@ struct ArrisStatus {
     interfaces: Vec<InterfaceInformation>,
 }
 
+fn take_first_string(input: Option<ElementRef>) -> String {
+    input.unwrap().text().collect::<String>()
+}
+
+fn take_first_string_from_split(input: Option<ElementRef>) -> String {
+    take_first_string(input)
+        .split_whitespace()
+        .next()
+        .unwrap()
+        .to_string()
+}
+
+fn take_last_string_from_split(input: Option<ElementRef>) -> String {
+    take_first_string(input)
+        .split_whitespace()
+        .last()
+        .unwrap()
+        .to_string()
+}
+
 fn parse_tables_rf_parameters_upstream_table(
     tables_rf_parameters_upstream: scraper::ElementRef,
 ) -> Vec<UpstreamParameter> {
@@ -80,66 +101,25 @@ fn parse_tables_rf_parameters_upstream_table(
     let mut td_tags = table_iter.next().unwrap().select(&td_selector);
 
     let upstream_parameter = UpstreamParameter {
-        id: td_tags
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat()
-            .split(' ')
-            .last()
-            .unwrap()
-            .to_string(),
-
-        channel_id: td_tags
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat()
+        id: take_last_string_from_split(td_tags.next())
             .parse::<u8>()
-            .unwrap_or(0),
+            .unwrap(),
 
-        freq_mhz: td_tags
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat()
-            .split(' ')
-            .next()
-            .unwrap_or("")
-            .to_string()
+        channel_id: take_first_string(td_tags.next()).parse::<u8>().unwrap_or(0),
+
+        freq_mhz: take_first_string_from_split(td_tags.next())
             .parse::<f32>()
             .unwrap(),
 
-        power: td_tags
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat(),
+        power_dbmv: take_first_string_from_split(td_tags.next())
+            .parse::<f32>()
+            .unwrap_or(0.0),
 
-        channel_type: td_tags
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat(),
+        channel_type: take_first_string(td_tags.next()),
 
-        symbol_rate: td_tags
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat(),
+        symbol_rate: take_first_string(td_tags.next()),
 
-        modulation: td_tags
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat(),
+        modulation: take_first_string(td_tags.next()),
     };
 
     return vec![upstream_parameter];
@@ -161,88 +141,31 @@ fn parse_tables_rf_parameters_downstream_table(
             let mut td_tags = datarow.select(&td_selector);
 
             DownstreamParameter {
-                id: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat()
-                    .split(' ')
-                    .last()
-                    .unwrap()
-                    .to_string()
-                    .parse()
-                    .unwrap(),
+                id: take_last_string_from_split(td_tags.next()).parse().unwrap(),
 
-                channel_id: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat()
-                    .parse::<u8>()
-                    .unwrap_or(0),
+                channel_id: take_first_string(td_tags.next()).parse::<u8>().unwrap_or(0),
 
-                freq_mhz: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat()
-                    .split(' ')
-                    .next()
-                    .unwrap_or("")
-                    .to_string()
+                freq_mhz: take_first_string_from_split(td_tags.next())
                     .parse::<f32>()
                     .unwrap(),
 
-                power: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat(),
+                power_dbmv: take_first_string_from_split(td_tags.next())
+                    .parse::<f32>()
+                    .unwrap_or(0.0),
 
-                snr: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat(),
+                snr_db: take_first_string_from_split(td_tags.next())
+                    .parse::<f32>()
+                    .unwrap_or(0.0),
 
-                modulation: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat(),
+                modulation: take_first_string(td_tags.next()),
 
-                octets: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat()
+                octets: take_first_string(td_tags.next())
                     .parse::<usize>()
                     .unwrap_or(0),
 
-                correcteds: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat()
-                    .parse::<u8>()
-                    .unwrap_or(0),
+                corrected_count: take_first_string(td_tags.next()).parse::<u8>().unwrap_or(0),
 
-                uncorrectables: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat()
-                    .parse::<u8>()
-                    .unwrap_or(0),
+                uncorrectable_count: take_first_string(td_tags.next()).parse::<u8>().unwrap_or(0),
             }
         })
         .collect::<Vec<DownstreamParameter>>()
@@ -264,40 +187,15 @@ fn parse_tables_interface_parameters_table(
             let mut td_tags = datarow.select(&td_selector);
 
             InterfaceInformation {
-                name: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat(),
+                name: take_first_string(td_tags.next()),
 
-                provisioned: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat(),
+                provisioned: take_first_string(td_tags.next()),
 
-                state: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat(),
+                state: take_first_string(td_tags.next()),
 
-                speed: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat(),
+                speed: take_first_string(td_tags.next()),
 
-                mac_address: td_tags
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<&str>>()
-                    .concat(),
+                mac_address: take_first_string(td_tags.next()),
             }
         })
         .collect::<Vec<InterfaceInformation>>()
@@ -310,47 +208,17 @@ fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusParame
     let mut table_iter = tables_status.select(&tr_selector);
 
     StatusParameter {
-        uptime: table_iter
-            .next()
-            .unwrap()
-            .select(&td_selector)
-            .last()
-            .unwrap()
-            .text()
-            .collect::<Vec<_>>()
-            .concat(),
+        uptime: take_first_string(table_iter.next().unwrap().select(&td_selector).last()),
 
-        computers_detected: table_iter
-            .next()
-            .unwrap()
-            .select(&td_selector)
-            .last()
-            .unwrap()
-            .text()
-            .collect::<Vec<_>>()
-            .concat()
-            .trim()
-            .to_owned(),
+        computers_detected: take_first_string(
+            table_iter.next().unwrap().select(&td_selector).last(),
+        )
+        .trim()
+        .to_owned(),
 
-        cm_status: table_iter
-            .next()
-            .unwrap()
-            .select(&td_selector)
-            .last()
-            .unwrap()
-            .text()
-            .collect::<Vec<_>>()
-            .concat(),
+        cm_status: take_first_string(table_iter.next().unwrap().select(&td_selector).last()),
 
-        current_datetime: table_iter
-            .next()
-            .unwrap()
-            .select(&td_selector)
-            .last()
-            .unwrap()
-            .text()
-            .collect::<Vec<_>>()
-            .concat(),
+        current_datetime: take_first_string(table_iter.next().unwrap().select(&td_selector).last()),
     }
 }
 
@@ -361,23 +229,27 @@ fn parse_request(html: &str) -> ArrisStatus {
 
     let mut tables = document.select(&table_selector);
 
+    // Skip row
     let _tables_rf_parameters = tables.next().unwrap();
 
     let tables_rf_parameters_downstream = tables.next().unwrap();
     let downstream_parameters =
         parse_tables_rf_parameters_downstream_table(tables_rf_parameters_downstream);
 
+    // Skip row
     let _tables_rf_parameters_fec_counters = tables.next().unwrap();
 
     let tables_rf_parameters_upstream = tables.next().unwrap();
     let upstream_parameters =
         parse_tables_rf_parameters_upstream_table(tables_rf_parameters_upstream);
 
+    // Skip row
     let _tables_status = tables.next().unwrap();
 
     let tables_status = tables.next().unwrap();
     let tables_status_values = parse_tables_status_table(tables_status);
 
+    // Skip row
     let _tables_interface_parameters = tables.next().unwrap();
 
     let tables_interface_parameters_values = tables.next().unwrap();
