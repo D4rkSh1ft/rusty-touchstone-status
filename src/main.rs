@@ -33,7 +33,7 @@ struct UpstreamParameter {
 struct DownstreamParameter {
     id: u8,
     channel_id: u8,
-    freq: String,
+    freq_mhz: String,
     power: String,
     snr: String,
     modulation: String,
@@ -72,18 +72,18 @@ fn parse_tables_rf_parameters_upstream_table(
     let tr_selector = scraper::Selector::parse("tr").unwrap();
     let td_selector = scraper::Selector::parse("td").unwrap();
 
-    let mut tables_rf_parameters_upstream_iter = tables_rf_parameters_upstream.select(&tr_selector);
+    let mut table_iter = tables_rf_parameters_upstream.select(&tr_selector);
 
     // Skip first row.
-    tables_rf_parameters_upstream_iter.next();
+    table_iter.next();
 
-    let mut rf_parameters_tabledata = tables_rf_parameters_upstream_iter
+    let mut td_tags = table_iter
         .next()
         .unwrap()
         .select(&td_selector);
 
     let upstream_parameter = UpstreamParameter {
-        id: rf_parameters_tabledata
+        id: td_tags
             .next()
             .unwrap()
             .text()
@@ -94,7 +94,7 @@ fn parse_tables_rf_parameters_upstream_table(
             .unwrap()
             .to_string(),
 
-        channel_id: rf_parameters_tabledata
+        channel_id: td_tags
             .next()
             .unwrap()
             .text()
@@ -103,35 +103,35 @@ fn parse_tables_rf_parameters_upstream_table(
             .parse::<u8>()
             .unwrap_or(0),
 
-        frequency: rf_parameters_tabledata
+        frequency: td_tags
             .next()
             .unwrap()
             .text()
             .collect::<Vec<&str>>()
             .concat(),
 
-        power: rf_parameters_tabledata
+        power: td_tags
             .next()
             .unwrap()
             .text()
             .collect::<Vec<&str>>()
             .concat(),
 
-        channel_type: rf_parameters_tabledata
+        channel_type: td_tags
             .next()
             .unwrap()
             .text()
             .collect::<Vec<&str>>()
             .concat(),
 
-        symbol_rate: rf_parameters_tabledata
+        symbol_rate: td_tags
             .next()
             .unwrap()
             .text()
             .collect::<Vec<&str>>()
             .concat(),
 
-        modulation: rf_parameters_tabledata
+        modulation: td_tags
             .next()
             .unwrap()
             .text()
@@ -148,18 +148,18 @@ fn parse_tables_rf_parameters_downstream_table(
     let tr_selector = scraper::Selector::parse("tr").unwrap();
     let td_selector = scraper::Selector::parse("td").unwrap();
 
-    let mut tables_rf_parameters_downstream_iter =
+    let mut table_iter =
         tables_rf_parameters_downstream.select(&tr_selector);
 
     // Skip first row.
-    tables_rf_parameters_downstream_iter.next();
+    table_iter.next();
 
-    tables_rf_parameters_downstream_iter
+    table_iter
         .map(|datarow| {
-            let mut rf_parameters_tds = datarow.select(&td_selector);
+            let mut td_tags = datarow.select(&td_selector);
 
             DownstreamParameter {
-                id: rf_parameters_tds
+                id: td_tags
                     .next()
                     .unwrap()
                     .text()
@@ -172,7 +172,7 @@ fn parse_tables_rf_parameters_downstream_table(
                     .parse()
                     .unwrap(),
 
-                channel_id: rf_parameters_tds
+                channel_id: td_tags
                     .next()
                     .unwrap()
                     .text()
@@ -181,35 +181,35 @@ fn parse_tables_rf_parameters_downstream_table(
                     .parse::<u8>()
                     .unwrap_or(0),
 
-                freq: rf_parameters_tds
+                freq_mhz: td_tags
                     .next()
                     .unwrap()
                     .text()
                     .collect::<Vec<&str>>()
                     .concat(),
 
-                power: rf_parameters_tds
+                power: td_tags
                     .next()
                     .unwrap()
                     .text()
                     .collect::<Vec<&str>>()
                     .concat(),
 
-                snr: rf_parameters_tds
+                snr: td_tags
                     .next()
                     .unwrap()
                     .text()
                     .collect::<Vec<&str>>()
                     .concat(),
 
-                modulation: rf_parameters_tds
+                modulation: td_tags
                     .next()
                     .unwrap()
                     .text()
                     .collect::<Vec<&str>>()
                     .concat(),
 
-                octets: rf_parameters_tds
+                octets: td_tags
                     .next()
                     .unwrap()
                     .text()
@@ -218,7 +218,7 @@ fn parse_tables_rf_parameters_downstream_table(
                     .parse::<usize>()
                     .unwrap_or(0),
 
-                correcteds: rf_parameters_tds
+                correcteds: td_tags
                     .next()
                     .unwrap()
                     .text()
@@ -227,7 +227,7 @@ fn parse_tables_rf_parameters_downstream_table(
                     .parse::<u8>()
                     .unwrap_or(0),
 
-                uncorrectables: rf_parameters_tds
+                uncorrectables: td_tags
                     .next()
                     .unwrap()
                     .text()
@@ -246,45 +246,45 @@ fn parse_tables_interface_parameters_table(
     let tr_selector = scraper::Selector::parse("tr").unwrap();
     let td_selector = scraper::Selector::parse("td").unwrap();
 
-    let mut tables_interface_parameters_iter = tables_interface_parameters.select(&tr_selector);
+    let mut table_iter = tables_interface_parameters.select(&tr_selector);
 
     // Skip first row.
-    tables_interface_parameters_iter.next();
+    table_iter.next();
 
-    tables_interface_parameters_iter
+    table_iter
         .map(|datarow| {
-            let mut rf_parameters_tds = datarow.select(&td_selector);
+            let mut td_tags = datarow.select(&td_selector);
 
             InterfaceInformation {
-                name: rf_parameters_tds
+                name: td_tags
                     .next()
                     .unwrap()
                     .text()
                     .collect::<Vec<&str>>()
                     .concat(),
 
-                provisioned: rf_parameters_tds
+                provisioned: td_tags
                     .next()
                     .unwrap()
                     .text()
                     .collect::<Vec<&str>>()
                     .concat(),
 
-                state: rf_parameters_tds
+                state: td_tags
                     .next()
                     .unwrap()
                     .text()
                     .collect::<Vec<&str>>()
                     .concat(),
 
-                speed: rf_parameters_tds
+                speed: td_tags
                     .next()
                     .unwrap()
                     .text()
                     .collect::<Vec<&str>>()
                     .concat(),
 
-                mac_address: rf_parameters_tds
+                mac_address: td_tags
                     .next()
                     .unwrap()
                     .text()
@@ -299,10 +299,10 @@ fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusParame
     let tr_selector = scraper::Selector::parse("tr").unwrap();
     let td_selector = scraper::Selector::parse("td").unwrap();
 
-    let mut tables_status_iter = tables_status.select(&tr_selector);
+    let mut table_iter = tables_status.select(&tr_selector);
 
     StatusParameter {
-        uptime: tables_status_iter
+        uptime: table_iter
             .next()
             .unwrap()
             .select(&td_selector)
@@ -312,7 +312,7 @@ fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusParame
             .collect::<Vec<_>>()
             .concat(),
 
-        computers_detected: tables_status_iter
+        computers_detected: table_iter
             .next()
             .unwrap()
             .select(&td_selector)
@@ -324,7 +324,7 @@ fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusParame
             .trim()
             .to_owned(),
 
-        cm_status: tables_status_iter
+        cm_status: table_iter
             .next()
             .unwrap()
             .select(&td_selector)
@@ -334,7 +334,7 @@ fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusParame
             .collect::<Vec<_>>()
             .concat(),
 
-        current_datetime: tables_status_iter
+        current_datetime: table_iter
             .next()
             .unwrap()
             .select(&td_selector)
