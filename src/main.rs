@@ -240,7 +240,7 @@ fn parse_tables_rf_parameters_downstream_table(
 
         results.push(downstream_parameter);
     }
-    
+
     results
 }
 
@@ -254,9 +254,7 @@ fn parse_tables_interface_parameters_table(
 
     let _tables_interface_parameters_iter_r1 = tables_interface_parameters_iter.next();
 
-    let mut results: Vec<InterfaceInformation> = Vec::new();
-
-    for datarow in tables_interface_parameters_iter {
+    tables_interface_parameters_iter.fold(Vec::new(), |mut results, datarow| {
         let mut interface_parameter = InterfaceInformation::default();
 
         let mut rf_parameters_tds = datarow.select(&td_selector);
@@ -298,11 +296,9 @@ fn parse_tables_interface_parameters_table(
 
         results.push(interface_parameter);
 
-        // println!("{}", serde_json::to_string_pretty(&downstream_parameter).unwrap());
-    }
-
-    // println!("{}", serde_json::to_string_pretty(&results).unwrap());
-    results
+        results
+        
+    })
 }
 
 fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusParameter {
