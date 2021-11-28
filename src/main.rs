@@ -154,94 +154,90 @@ fn parse_tables_rf_parameters_downstream_table(
     // Skip first row.
     tables_rf_parameters_downstream_iter.next();
 
-    let mut results: Vec<DownstreamParameter> = Vec::new();
+    tables_rf_parameters_downstream_iter
+        .map(|datarow| {
+            let mut rf_parameters_tds = datarow.select(&td_selector);
 
-    for datarow in tables_rf_parameters_downstream_iter {
-        let mut rf_parameters_tds = datarow.select(&td_selector);
+            DownstreamParameter {
+                id: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat()
+                    .split(' ')
+                    .last()
+                    .unwrap()
+                    .to_string()
+                    .parse()
+                    .unwrap(),
 
-        let downstream_parameter = DownstreamParameter {
-            id: rf_parameters_tds
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<&str>>()
-                .concat()
-                .split(' ')
-                .last()
-                .unwrap()
-                .to_string()
-                .parse()
-                .unwrap(),
+                channel_id: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat()
+                    .parse::<u8>()
+                    .unwrap_or(0),
 
-            channel_id: rf_parameters_tds
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<&str>>()
-                .concat()
-                .parse::<u8>()
-                .unwrap_or(0),
+                freq: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat(),
 
-            freq: rf_parameters_tds
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<&str>>()
-                .concat(),
+                power: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat(),
 
-            power: rf_parameters_tds
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<&str>>()
-                .concat(),
+                snr: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat(),
 
-            snr: rf_parameters_tds
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<&str>>()
-                .concat(),
+                modulation: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat(),
 
-            modulation: rf_parameters_tds
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<&str>>()
-                .concat(),
+                octets: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat()
+                    .parse::<usize>()
+                    .unwrap_or(0),
 
-            octets: rf_parameters_tds
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<&str>>()
-                .concat()
-                .parse::<usize>()
-                .unwrap_or(0),
+                correcteds: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat()
+                    .parse::<u8>()
+                    .unwrap_or(0),
 
-            correcteds: rf_parameters_tds
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<&str>>()
-                .concat()
-                .parse::<u8>()
-                .unwrap_or(0),
-
-            uncorrectables: rf_parameters_tds
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<&str>>()
-                .concat()
-                .parse::<u8>()
-                .unwrap_or(0),
-        };
-
-        results.push(downstream_parameter);
-    }
-
-    results
+                uncorrectables: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat()
+                    .parse::<u8>()
+                    .unwrap_or(0),
+            }
+        })
+        .collect::<Vec<DownstreamParameter>>()
 }
 
 fn parse_tables_interface_parameters_table(
@@ -255,51 +251,48 @@ fn parse_tables_interface_parameters_table(
     // Skip first row.
     tables_interface_parameters_iter.next();
 
-    tables_interface_parameters_iter.fold(Vec::new(), |mut results, datarow| {
-        let mut interface_parameter = InterfaceInformation::default();
+    tables_interface_parameters_iter
+        .map(|datarow| {
+            let mut rf_parameters_tds = datarow.select(&td_selector);
 
-        let mut rf_parameters_tds = datarow.select(&td_selector);
+            InterfaceInformation {
+                name: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat(),
 
-        interface_parameter.name = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat();
+                provisioned: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat(),
 
-        interface_parameter.provisioned = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat();
+                state: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat(),
 
-        interface_parameter.state = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat();
+                speed: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat(),
 
-        interface_parameter.speed = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat();
-
-        interface_parameter.mac_address = rf_parameters_tds
-            .next()
-            .unwrap()
-            .text()
-            .collect::<Vec<&str>>()
-            .concat();
-
-        results.push(interface_parameter);
-
-        results
-        
-    })
+                mac_address: rf_parameters_tds
+                    .next()
+                    .unwrap()
+                    .text()
+                    .collect::<Vec<&str>>()
+                    .concat(),
+            }
+        })
+        .collect::<Vec<InterfaceInformation>>()
 }
 
 fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusParameter {
