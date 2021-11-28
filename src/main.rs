@@ -252,7 +252,8 @@ fn parse_tables_interface_parameters_table(
 
     let mut tables_interface_parameters_iter = tables_interface_parameters.select(&tr_selector);
 
-    let _tables_interface_parameters_iter_r1 = tables_interface_parameters_iter.next();
+    // Skip first row.
+    tables_interface_parameters_iter.next();
 
     tables_interface_parameters_iter.fold(Vec::new(), |mut results, datarow| {
         let mut interface_parameter = InterfaceInformation::default();
