@@ -1,0 +1,14 @@
+[package]
+name = "rusty-touchstone-status"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "0.11", features = ["blocking"] }
+scraper = { version = "0.12.0" }
+soup = { version = "0.5.1" }
+html5ever = { version = "0.25.1" }
+serde_json = { version = "1.0.71" }
+serde = { version = "1.0.130", features = ["derive"] }
