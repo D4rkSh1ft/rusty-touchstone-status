@@ -61,12 +61,13 @@ pub struct ArrisStatus {
     pub interfaces: Vec<InterfaceInformation>,
 }
 
-/// Take the first string from a HTML Element.
+/// Returns the first item from an `ElementRef` as a `String`.
 pub fn take_first_string(input: Option<ElementRef>) -> String {
     input.unwrap().text().collect::<String>()
 }
 
-/// Take the first string after splitting on whitespace.
+/// Splits an ElementRef at whitespace.  
+/// Returns the first item from the resulting `SplitWhitespace` as a `String`.
 pub fn take_first_string_from_split(input: Option<ElementRef>) -> String {
     take_first_string(input)
         .split_whitespace()
@@ -75,7 +76,8 @@ pub fn take_first_string_from_split(input: Option<ElementRef>) -> String {
         .to_string()
 }
 
-/// Take the last string after splitting on whitespace.
+/// Splits an ElementRef at whitespace.  
+/// Returns the last item from the resulting `SplitWhitespace` as a `String`.
 pub fn take_last_string_from_split(input: Option<ElementRef>) -> String {
     take_first_string(input)
         .split_whitespace()
@@ -84,7 +86,13 @@ pub fn take_last_string_from_split(input: Option<ElementRef>) -> String {
         .to_string()
 }
 
-/// Parse the HTML tables from an Arris cablemodem status page.
+/// Parse the HTML tables from an Arris cable modem status page.
+///
+/// # Arguments
+/// * `tables_rf_parameters_upstream` - An ElementRef that holds the table.
+///
+/// # Returns
+/// * `Vec<UpstreamParameter>`
 pub fn parse_tables_rf_parameters_upstream_table(
     tables_rf_parameters_upstream: scraper::ElementRef,
 ) -> Vec<UpstreamParameter> {
@@ -103,9 +111,7 @@ pub fn parse_tables_rf_parameters_upstream_table(
             .parse::<u8>()
             .unwrap(),
 
-        channel_id: take_first_string(td_tags.next())
-            .parse::<u8>()
-            .unwrap_or(0),
+        channel_id: take_first_string(td_tags.next()).parse::<u8>().unwrap_or(0),
 
         freq_mhz: take_first_string_from_split(td_tags.next())
             .parse::<f32>()
@@ -142,13 +148,9 @@ pub fn parse_tables_rf_parameters_downstream_table(
             let mut td_tags = datarow.select(&td_selector);
 
             DownstreamParameter {
-                id: take_last_string_from_split(td_tags.next())
-                    .parse()
-                    .unwrap(),
+                id: take_last_string_from_split(td_tags.next()).parse().unwrap(),
 
-                channel_id: take_first_string(td_tags.next())
-                    .parse::<u8>()
-                    .unwrap_or(0),
+                channel_id: take_first_string(td_tags.next()).parse::<u8>().unwrap_or(0),
 
                 freq_mhz: take_first_string_from_split(td_tags.next())
                     .parse::<f32>()
@@ -168,13 +170,9 @@ pub fn parse_tables_rf_parameters_downstream_table(
                     .parse::<usize>()
                     .unwrap_or(0),
 
-                corrected_count: take_first_string(td_tags.next())
-                    .parse::<u8>()
-                    .unwrap_or(0),
+                corrected_count: take_first_string(td_tags.next()).parse::<u8>().unwrap_or(0),
 
-                uncorrectable_count: take_first_string(td_tags.next())
-                    .parse::<u8>()
-                    .unwrap_or(0),
+                uncorrectable_count: take_first_string(td_tags.next()).parse::<u8>().unwrap_or(0),
             }
         })
         .collect::<Vec<DownstreamParameter>>()
@@ -227,13 +225,9 @@ pub fn parse_tables_status_table(tables_status: scraper::ElementRef) -> StatusPa
         .trim()
         .to_owned(),
 
-        cm_status: take_first_string(
-            table_iter.next().unwrap().select(&td_selector).last(),
-        ),
+        cm_status: take_first_string(table_iter.next().unwrap().select(&td_selector).last()),
 
-        current_datetime: take_first_string(
-            table_iter.next().unwrap().select(&td_selector).last(),
-        ),
+        current_datetime: take_first_string(table_iter.next().unwrap().select(&td_selector).last()),
     }
 }
 
