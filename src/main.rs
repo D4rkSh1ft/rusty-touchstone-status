@@ -1,21 +1,28 @@
 mod parser;
 
 use crate::parser::ArrisStatus;
+use structopt::StructOpt;
 
-fn send_request() -> String {
+#[derive(StructOpt, Debug)]
+struct Cli {
+    /// IP Address of Arris Cable Modem
+    #[structopt(default_value = "192.168.100.1")]
+    ip: String,
+}
+
+fn send_request(ip: String) -> String {
     let client_builder = reqwest::blocking::ClientBuilder::new();
     let client = client_builder.build().unwrap();
 
-    client
-        .get("http://192.168.100.1/cgi-bin/status_cgi")
-        .send()
-        .unwrap()
-        .text()
-        .unwrap()
+    let url = format!("http://{}/cgi-bin/status_cgi", ip);
+
+    client.get(url).send().unwrap().text().unwrap()
 }
 
 fn main() {
-    let response = send_request();
+    let args = Cli::from_args();
+
+    let response = send_request(args.ip);
     let html = response.as_str();
 
     let parsed: ArrisStatus = parser::parse_request(html);
